@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>스마트 식판 – 영양 분석</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    margin: 0; padding: 20px;
+
+    background: #f4f4f4;
+
+}
+
+h2 { text-align: center; }
+
+.container {
+
+    background: white;
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+}
+
+button {
+
+    width: 100%; padding: 12px;
+
+    margin-top: 10px;
+
+    border: none; border-radius: 6px;
+
+    font-size: 16px;
+
+    background: #3b82f6; color: white;
+
+}
+
+select, input {
+
+    width: 100%; padding: 10px;
+
+    margin-top: 8px;
+
+    border-radius: 5px;
+
+    border: 1px solid #bbb;
+
+}
+
+.result-box {
+
+    margin-top: 20px;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    background: #eef;
+
+}
+
+.good { color: green; font-weight: bold; }
+
+.warn { color: orange; font-weight: bold; }
+
+.bad  { color: red; font-weight: bold; }
+
+</style>
+
+</head>
+
+<body>
+
+
+
+<h2>스마트 식판 영양 분석</h2>
+
+<div class="container">
+
+
+
+<!-- 성별 선택 -->
+
+<h3>1. 성별 선택</h3>
+
+<select id="gender">
+
+    <option value="male">남성</option>
+
+    <option value="female">여성</option>
+
+</select>
+
+
+
+<!-- 끼니 선택 -->
+
+<h3>2. 식사 선택</h3>
+
+<select id="meal">
+
+    <option value="breakfast">아침</option>
+
+    <option value="lunch">점심</option>
+
+    <option value="dinner">저녁</option>
+
+</select>
+
+
+
+<!-- 밥 선택 -->
+
+<h3>3. 밥 선택</h3>
+
+<select id="rice">
+
+    <option value="white">흰쌀밥</option>
+
+    <option value="multi">잡곡밥</option>
+
+    <option value="barley">보리밥</option>
+
+</select>
+
+<input id="riceAmount" type="number" placeholder="섭취량(g) 입력">
+
+
+
+<!-- 국 선택 -->
+
+<h3>4. 국 선택</h3>
+
+<select id="soup">
+
+    <option value="perilla">들깨미역국</option>
+
+    <option value="beansprout">맑은 콩나물국</option>
+
+    <option value="radishbeef">소고기무국</option>
+
+</select>
+
+<input id="soupAmount" type="number" placeholder="섭취량(g) 입력">
+
+
+
+<!-- 반찬 선택 -->
+
+<h3>5. 반찬 선택 (3개까지)</h3>
+
+
+
+<select id="side1">
+
+    <option value="">선택 없음</option>
+
+    <option value="egg">계란찜</option>
+
+    <option value="anchovy">멸치볶음</option>
+
+    <option value="zucchini">애호박볶음</option>
+
+    <option value="spinach">시금치나물</option>
+
+    <option value="mackerel">고등어조림</option>
+
+    <option value="kimchi">백김치</option>
+
+</select>
+
+<input id="side1Amount" type="number" placeholder="섭취량(g)">
+
+
+
+<select id="side2">
+
+    <option value="">선택 없음</option>
+
+    <option value="egg">계란찜</option>
+
+    <option value="anchovy">멸치볶음</option>
+
+    <option value="zucchini">애호박볶음</option>
+
+    <option value="spinach">시금치나물</option>
+
+    <option value="mackerel">고등어조림</option>
+
+    <option value="kimchi">백김치</option>
+
+</select>
+
+<input id="side2Amount" type="number" placeholder="섭취량(g)">
+
+
+
+<select id="side3">
+
+    <option value="">선택 없음</option>
+
+    <option value="egg">계란찜</option>
+
+    <option value="anchovy">멸치볶음</option>
+
+    <option value="zucchini">애호박볶음</option>
+
+    <option value="spinach">시금치나물</option>
+
+    <option value="mackerel">고등어조림</option>
+
+    <option value="kimchi">백김치</option>
+
+</select>
+
+<input id="side3Amount" type="number" placeholder="섭취량(g)">
+
+
+
+<button onclick="calculate()">영양 분석하기</button>
+
+
+
+<div id="result" class="result-box" style="display:none;"></div>
+
+
+
+<button onclick="saveMeal()">이 끼니 저장</button>
+
+
+
+</div>
+
+
+
+<script>
+
+// *** 1g당 영양소 데이터 ***
+
+const data = {
+
+    white:{k:1.46,c:0.317,p:0.025,f:0.003,n:0.01},
+
+    multi:{k:1.49,c:0.32,p:0.03,f:0.01,n:0.01},
+
+    barley:{k:1.40,c:0.33,p:0.035,f:0.01,n:0.01},
+
+
+
+    perilla:{k:0.21,c:0.01,p:0.01,f:0.011,n:0.2},
+
+    beansprout:{k:0.16,c:0.05,p:0.03,f:0.005,n:0.2},
+
+    radishbeef:{k:0.30,c:0.05,p:0.14,f:0.04,n:0.3},
+
+
+
+    egg:{k:1.42,c:0.02,p:0.10,f:0.10,n:0.3},
+
+    anchovy:{k:1.73,c:0.009,p:0.186,f:0.102,n:0.45},
+
+    zucchini:{k:1.42,c:0.10,p:0.03,f:0.10,n:0.2},
+
+    spinach:{k:0.68,c:0.073,p:0.032,f:0.036,n:0.2},
+
+    mackerel:{k:1.41,c:0.041,p:0.113,f:0.088,n:0.4},
+
+    kimchi:{k:0.22,c:0.048,p:0.012,f:0.002,n:0.45}
+
+};
+
+
+
+// 성별별 하루 기준
+
+const base = {
+
+    male:{cal:2000, carb:300, prot:60, fat:50, sodium:2000},
+
+    female:{cal:1600, carb:250, prot:50, fat:40, sodium:2000}
+
+};
+
+
+
+// 식사별 권장 비율
+
+const mealRate = {breakfast:0.3, lunch:0.4, dinner:0.3};
+
+
+
+function getMealTargets(){
+
+    const gender = document.getElementById("gender").value;
+
+    const meal = document.getElementById("meal").value;
+
+    const g = base[gender];
+
+    const r = mealRate[meal];
+
+
+
+    return {
+
+        cal: g.cal*r,
+
+        carb: g.carb*r,
+
+        prot: g.prot*r,
+
+        fat: g.fat*r,
+
+        sodium: g.sodium*r
+
+    };
+
+}
+
+
+
+function calcItem(key, amount){
+
+    if(!key || !amount) return {cal:0,carb:0,prot:0,fat:0,sodium:0};
+
+    const d = data[key];
+
+    return {
+
+        cal: d.k * amount,
+
+        carb: d.c * amount,
+
+        prot: d.p * amount,
+
+        fat: d.f * amount,
+
+        sodium: d.n * amount
+
+    };
+
+}
+
+
+
+function rate(value,target){
+
+    return (value/target*100).toFixed(1);
+
+}
+
+
+
+function colorize(v){
+
+    if(v<80) return `<span class='warn'>${v}% (부족)</span>`;
+
+    if(v>120) return `<span class='bad'>${v}% (과다)</span>`;
+
+    return `<span class='good'>${v}% (적정)</span>`;
+
+}
+
+
+
+function calculate(){
+
+    const mealTargets = getMealTargets();
+
+
+
+    let items = [];
+
+    items.push(calcItem(rice.value, Number(riceAmount.value)));
+
+    items.push(calcItem(soup.value, Number(soupAmount.value)));
+
+    items.push(calcItem(side1.value, Number(side1Amount.value)));
+
+    items.push(calcItem(side2.value, Number(side2Amount.value)));
+
+    items.push(calcItem(side3.value, Number(side3Amount.value)));
+
+
+
+    let total = {cal:0,carb:0,prot:0,fat:0,sodium:0};
+
+    items.forEach(i=>{
+
+        total.cal += i.cal;
+
+        total.carb += i.carb;
+
+        total.prot += i.prot;
+
+        total.fat += i.fat;
+
+        total.sodium += i.sodium;
+
+    });
+
+
+
+    const calR = rate(total.cal, mealTargets.cal);
+
+    const carbR = rate(total.carb, mealTargets.carb);
+
+    const protR = rate(total.prot, mealTargets.prot);
+
+    const fatR = rate(total.fat, mealTargets.fat);
+
+    const sodiumR = rate(total.sodium, mealTargets.sodium);
+
+
+
+    document.getElementById("result").style.display="block";
+
+    document.getElementById("result").innerHTML = `
+
+        <h3>📊 섭취 결과</h3>
+
+        칼로리: ${colorize(calR)}<br>
+
+        탄수화물: ${colorize(carbR)}<br>
+
+        단백질: ${colorize(protR)}<br>
+
+        지방: ${colorize(fatR)}<br>
+
+        나트륨: ${colorize(sodiumR)}<br>
+
+    `;
+
+
+
+    window._lastResult = {total, rates:{calR,carbR,protR,fatR,sodiumR}};
+
+}
+
+
+
+function saveMeal(){
+
+    const meal = document.getElementById("meal").value;
+
+    if(!window._lastResult){
+
+        alert("먼저 계산을 해주세요!");
+
+        return;
+
+    }
+
+    localStorage.setItem(meal, JSON.stringify(window._lastResult));
+
+    alert("이 끼니가 저장되었습니다!");
+
+}
+
+</script>
+
+
+
+</body>
+
+</html>
